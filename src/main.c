@@ -156,6 +156,12 @@ int main() {
 		puts("Created a logical device");
 	}
 
+	VkQueue computeQueue = VK_NULL_HANDLE;
+	VkQueue transferQueue = VK_NULL_HANDLE;
+	vkGetDeviceQueue(device, computeQueueIndex, 0, &computeQueue);
+	vkGetDeviceQueue(device, transferQueueIndex, 0, &transferQueue);
+
+
 	// Destroy the logical device
 	vkDestroyDevice(device, NULL);
 	puts("Destroyed the logical device");
