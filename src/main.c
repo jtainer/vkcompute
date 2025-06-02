@@ -1,9 +1,48 @@
 #include <vulkan/vulkan.h>
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <string.h>
 
 int main() {
+
+	const char* requestedLayers[] = {
+		"VK_LAYER_KHRONOS_validation"
+	};
+	const uint32_t requestedLayerCount = sizeof(requestedLayers) / sizeof(*requestedLayers);
+
+	// Get supported layer count
+	uint32_t supportedLayerCount = 0;
+	VkResult result = vkEnumerateInstanceLayerProperties(&supportedLayerCount, NULL);
+	if (result != VK_SUCCESS) {
+		puts("Failed to get supported layers");
+		exit(1);
+	}
+
+	VkLayerProperties* supportedLayers = malloc(sizeof(VkLayerProperties) * supportedLayerCount);
+	result = vkEnumerateInstanceLayerProperties(&supportedLayerCount, supportedLayers);
+	if (result != VK_SUCCESS) {
+		puts("Failed to get supported layers");
+		exit(1);
+	}
+
+	const char** enabledLayers = malloc(sizeof(char*) * requestedLayerCount);
+	uint32_t enabledLayerCount = 0;
+	for (uint32_t i = 0; i < requestedLayerCount; ++i) {
+		for (uint32_t j = 0; j < supportedLayerCount; ++j) {
+			if (!strcmp(requestedLayers[i], supportedLayers[j].layerName)) {
+				enabledLayers[enabledLayerCount] = requestedLayers[i];
+				++enabledLayerCount;
+				break;
+			}
+		}
+	}
+
+	free(supportedLayers);
+
+	printf("Enabled layer count: %u\n", enabledLayerCount);
+	for (uint32_t i = 0; i < enabledLayerCount; ++i) {
+		printf("\t%s\n", enabledLayers[i]);
+	}
 
 	// Create a Vulkan instance
 	VkInstanceCreateInfo instanceInfo = { 0 };
@@ -11,18 +50,20 @@ int main() {
 	instanceInfo.pNext = NULL;
 	instanceInfo.flags = 0;
 	instanceInfo.pApplicationInfo = NULL;
-	instanceInfo.enabledLayerCount = 0;
-	instanceInfo.ppEnabledLayerNames = NULL;
+	instanceInfo.enabledLayerCount = enabledLayerCount;
+	instanceInfo.ppEnabledLayerNames = enabledLayers;
 	instanceInfo.enabledExtensionCount = 0;
 	instanceInfo.ppEnabledExtensionNames = NULL;
 
 	VkInstance instance = VK_NULL_HANDLE;
-	VkResult result = vkCreateInstance(&instanceInfo, NULL, &instance);
+	result = vkCreateInstance(&instanceInfo, NULL, &instance);
 	if (result != VK_SUCCESS) {
 		puts("Failed to create a Vulkan instance");
 		exit(1);
 	}
 	puts("Created a Vulkan instance");
+
+	free(enabledLayers);
 
 	// Query the number of physical devices
 	uint32_t physicalDeviceCount = 0;
