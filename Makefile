@@ -9,7 +9,7 @@ SHADER_DIR = shaders
 SRC = $(wildcard $(SRC_DIR)/*.c)
 OBJ = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRC))
 COMP_SHADERS = $(wildcard $(SHADER_DIR)/*.comp)
-SPV_SHADERS = $(COMP_SHADERS:.comp=.spv)
+SPV_SHADERS = $(patsubst $(SHADER_DIR)/%.comp, $(SHADER_DIR)/%.spv, $(COMP_SHADERS))
 TARGET = vkcompute
 
 all: app shaders
