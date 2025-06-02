@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 -I$(INC_DIR)
+CFLAGS = -std=c99 -I$(INC_DIR) -Wall
 LDFLAGS = -lvulkan
 
 SRC_DIR = src
