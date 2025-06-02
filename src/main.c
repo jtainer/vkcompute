@@ -53,7 +53,7 @@ int main() {
 	VkPhysicalDeviceProperties physicalDeviceProperties = { 0 };
 	for (uint32_t i = 0; i < physicalDeviceCount; ++i) {
 		vkGetPhysicalDeviceProperties(physicalDevices[i], &physicalDeviceProperties);
-		if (physicalDeviceProperties.deviceType = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+		if (physicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
 			physicalDevice = physicalDevices[i];
 			break;
 		}
@@ -64,7 +64,7 @@ int main() {
 		for (uint32_t i = 0; i < physicalDeviceCount; ++i) {
 			VkPhysicalDeviceProperties deviceProperties = { 0 };
 			vkGetPhysicalDeviceProperties(physicalDevices[i], &deviceProperties);
-			if (physicalDeviceProperties.deviceType = VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
+			if (physicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
 				physicalDevice = physicalDevices[i];
 				physicalDeviceProperties = deviceProperties;
 				break;
@@ -78,7 +78,7 @@ int main() {
 		puts("No GPUs found!");
 		exit(1);
 	}
-	else if (physicalDeviceProperties.deviceType = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+	else if (physicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
 		printf("Selected discrete GPU: %s\n", physicalDeviceProperties.deviceName);
 	}
 	else {
