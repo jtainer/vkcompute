@@ -204,6 +204,7 @@ int main() {
 
 
 	// Destroy the logical device
+	vkDeviceWaitIdle(device);
 	vkDestroyDevice(device, NULL);
 	puts("Destroyed the logical device");
 
