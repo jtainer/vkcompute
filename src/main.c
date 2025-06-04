@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "shaders.h"
+
 int main() {
 
 	const char* requestedLayers[] = {
@@ -307,9 +309,23 @@ int main() {
 		exit(1);
 	}
 
+	// Load shader
+	const char* shaderFile = "shaders/double.spv";
+	VkShaderModule shaderModule = VK_NULL_HANDLE;
+	result = LoadShader(device, shaderFile, &shaderModule);
+	if (result != VK_SUCCESS) {
+		printf("Failed to load shader from file %s\n", shaderFile);
+		exit(1);
+	}
+	printf("Loaded shader from file %s\n", shaderFile);
+
 	// 
 	// Do work here
 	//
+
+	// Unload shader
+	vkDestroyShaderModule(device, shaderModule, NULL);
+	puts("Destroyed shader module");
 
 	// Unmap memory
 	vkUnmapMemory(device, inputBufferMemory);
