@@ -201,7 +201,43 @@ int main() {
 	VkQueue transferQueue = VK_NULL_HANDLE;
 	vkGetDeviceQueue(device, computeQueueIndex, 0, &computeQueue);
 	vkGetDeviceQueue(device, transferQueueIndex, 0, &transferQueue);
+ 
+	// Create buffers
+	const uint32_t numElements = 256;
+	const uint32_t bufferSize = numElements * sizeof(float);
+	VkBufferCreateInfo bufferCreateInfo = { 0 };
+	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferCreateInfo.pNext = NULL;
+	bufferCreateInfo.flags = 0;
+	bufferCreateInfo.size = bufferSize;
+	bufferCreateInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	bufferCreateInfo.queueFamilyIndexCount = 1;
+	bufferCreateInfo.pQueueFamilyIndices = &computeQueueIndex;
+	
+	VkBuffer inputBuffer = VK_NULL_HANDLE;
+	VkBuffer outputBuffer = VK_NULL_HANDLE;
 
+	result = vkCreateBuffer(device, &bufferCreateInfo, NULL, &inputBuffer);
+	if (result != VK_SUCCESS) {
+		puts("Failed to create input buffer");
+		exit(1);
+	}
+	result = vkCreateBuffer(device, &bufferCreateInfo, NULL, &outputBuffer);
+	if (result != VK_SUCCESS) {
+		puts("Failed to create input buffer");
+		exit(1);
+	}
+	printf("Created input and output buffers of size %u\n", bufferSize);
+
+	// 
+	// Do work here
+	//
+
+	// Destroy buffers
+	vkDestroyBuffer(device, inputBuffer, NULL);
+	vkDestroyBuffer(device, outputBuffer, NULL);
+	puts("Destroyed input and output buffers");
 
 	// Destroy the logical device
 	vkDeviceWaitIdle(device);
