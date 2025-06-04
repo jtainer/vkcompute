@@ -203,8 +203,8 @@ int main() {
 	vkGetDeviceQueue(device, transferQueueIndex, 0, &transferQueue);
  
 	// Create buffers
-	const uint32_t numElements = 256;
-	const uint32_t bufferSize = numElements * sizeof(float);
+	const uint64_t numElements = 256;
+	const uint64_t bufferSize = numElements * sizeof(float);
 	VkBufferCreateInfo bufferCreateInfo = { 0 };
 	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufferCreateInfo.pNext = NULL;
@@ -228,11 +228,98 @@ int main() {
 		puts("Failed to create input buffer");
 		exit(1);
 	}
-	printf("Created input and output buffers of size %u\n", bufferSize);
+	printf("Created input and output buffers of size %lu\n", bufferSize);
+
+	// Select a memory heap to allocate from
+	VkMemoryRequirements inputBufferMemoryRequirements = { 0 };
+	VkMemoryRequirements outputBufferMemoryRequirements = { 0 };
+	vkGetBufferMemoryRequirements(device, inputBuffer, &inputBufferMemoryRequirements);
+	vkGetBufferMemoryRequirements(device, outputBuffer, &outputBufferMemoryRequirements);
+
+	VkPhysicalDeviceMemoryProperties deviceMemoryProperties = { 0 };
+	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &deviceMemoryProperties);
+	
+	uint32_t memoryTypeIndex = 0;
+	uint64_t memoryHeapSize = 0;
+	for (uint32_t i = 0; i < deviceMemoryProperties.memoryTypeCount; ++i) {
+		VkMemoryType memoryType = deviceMemoryProperties.memoryTypes[i];
+		if (memoryType.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT &&
+			memoryType.propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
+			
+			memoryTypeIndex = i;
+			memoryHeapSize = deviceMemoryProperties.memoryHeaps[memoryType.heapIndex].size;
+			break;
+		}
+	}
+	printf("Selected memory heap %u (%lu bytes)\n", memoryTypeIndex, memoryHeapSize);
+
+	// Allocate memory for each buffer
+	VkMemoryAllocateInfo inputBufferMemoryAllocateInfo = { 0 };
+	VkMemoryAllocateInfo outputBufferMemoryAllocateInfo = { 0 };
+
+	inputBufferMemoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	inputBufferMemoryAllocateInfo.pNext = NULL;
+	inputBufferMemoryAllocateInfo.memoryTypeIndex = memoryTypeIndex;
+	inputBufferMemoryAllocateInfo.allocationSize = inputBufferMemoryRequirements.size;
+
+	outputBufferMemoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	outputBufferMemoryAllocateInfo.pNext = NULL;
+	outputBufferMemoryAllocateInfo.memoryTypeIndex = memoryTypeIndex;
+	outputBufferMemoryAllocateInfo.allocationSize = outputBufferMemoryRequirements.size;
+
+	VkDeviceMemory inputBufferMemory = VK_NULL_HANDLE;
+	VkDeviceMemory outputBufferMemory = VK_NULL_HANDLE;
+
+	result = vkAllocateMemory(device, &inputBufferMemoryAllocateInfo, NULL, &inputBufferMemory);
+	if (result != VK_SUCCESS) {
+		puts("Failed to allocate memory for input buffer");
+		exit(1);
+	}
+	result = vkAllocateMemory(device, &outputBufferMemoryAllocateInfo, NULL, &outputBufferMemory);
+	if (result != VK_SUCCESS) {
+		puts("Failed to allocate memory for output buffer");
+		exit(1);
+	}
+
+	// Get pointers mapped to device memory
+	float* inputBufferMappedPtr = NULL;
+	float* outputBufferMappedPtr = NULL;
+	result = vkMapMemory(device, inputBufferMemory, 0, bufferSize, 0, (void**) &inputBufferMappedPtr);
+	if (result != VK_SUCCESS) {
+		puts("Failed to map input buffer memory");
+		exit(1);
+	}
+	result = vkMapMemory(device, outputBufferMemory, 0, bufferSize, 0, (void**) &outputBufferMappedPtr);
+	if (result != VK_SUCCESS) {
+		puts("Failed to map output buffer memory");
+		exit(1);
+	}
+
+	// Bind memory to buffers
+	result = vkBindBufferMemory(device, inputBuffer, inputBufferMemory, 0);
+	if (result != VK_SUCCESS) {
+		puts("Failed to bind memory to input buffer");
+		exit(1);
+	}
+	result = vkBindBufferMemory(device, outputBuffer, outputBufferMemory, 0);
+	if (result != VK_SUCCESS) {
+		puts("Failed to bind memory to output buffer");
+		exit(1);
+	}
 
 	// 
 	// Do work here
 	//
+
+	// Unmap memory
+	vkUnmapMemory(device, inputBufferMemory);
+	vkUnmapMemory(device, outputBufferMemory);
+	puts("Unmapped buffer memory");
+
+	// Free buffer memory
+	vkFreeMemory(device, inputBufferMemory, NULL);
+	vkFreeMemory(device, outputBufferMemory, NULL);
+	puts("Freed buffer memory");
 
 	// Destroy buffers
 	vkDestroyBuffer(device, inputBuffer, NULL);
