@@ -429,6 +429,42 @@ int main() {
 	}
 	puts("Allocated descriptor set");
 
+	// Write to the descriptor set
+	VkDescriptorBufferInfo inputBufferDescriptorInfo = { 0 };
+	inputBufferDescriptorInfo.buffer = inputBuffer;
+	inputBufferDescriptorInfo.offset = 0;
+	inputBufferDescriptorInfo.range = bufferSize;
+
+	VkDescriptorBufferInfo outputBufferDescriptorInfo = { 0 };
+	outputBufferDescriptorInfo.buffer = outputBuffer;
+	outputBufferDescriptorInfo.offset = 0;
+	outputBufferDescriptorInfo.range = bufferSize;
+	
+	VkWriteDescriptorSet writeDescriptorSets[2] = { 0 };
+	writeDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeDescriptorSets[0].pNext = NULL;
+	writeDescriptorSets[0].dstSet = descriptorSet;
+	writeDescriptorSets[0].dstBinding = 0;
+	writeDescriptorSets[0].dstArrayElement = 0;
+	writeDescriptorSets[0].descriptorCount = 1;
+	writeDescriptorSets[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	writeDescriptorSets[0].pImageInfo = NULL;
+	writeDescriptorSets[0].pBufferInfo = &inputBufferDescriptorInfo;
+	writeDescriptorSets[0].pTexelBufferView = NULL;
+	writeDescriptorSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeDescriptorSets[1].pNext = NULL;
+	writeDescriptorSets[1].dstSet = descriptorSet;
+	writeDescriptorSets[1].dstBinding = 1;
+	writeDescriptorSets[1].dstArrayElement = 0;
+	writeDescriptorSets[1].descriptorCount = 1;
+	writeDescriptorSets[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	writeDescriptorSets[1].pImageInfo = NULL;
+	writeDescriptorSets[1].pBufferInfo = &outputBufferDescriptorInfo;
+	writeDescriptorSets[1].pTexelBufferView = NULL;
+
+	vkUpdateDescriptorSets(device, 2, writeDescriptorSets, 0, NULL);
+	puts("Wrote to descriptor set");
+
 	// 
 	// Do work here
 	//
