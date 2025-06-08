@@ -319,9 +319,63 @@ int main() {
 	}
 	printf("Loaded shader from file %s\n", shaderFile);
 
+	// Create descriptor set layout
+	VkDescriptorSetLayoutBinding descriptorSetLayoutBindings[2] = { 0 };
+	descriptorSetLayoutBindings[0].binding = 0;
+	descriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	descriptorSetLayoutBindings[0].descriptorCount = 1;
+	descriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+	descriptorSetLayoutBindings[0].pImmutableSamplers = NULL;
+	descriptorSetLayoutBindings[1].binding = 1;
+	descriptorSetLayoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	descriptorSetLayoutBindings[1].descriptorCount = 1;
+	descriptorSetLayoutBindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+	descriptorSetLayoutBindings[1].pImmutableSamplers = NULL;
+
+	VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo = { 0 };
+	descriptorSetLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	descriptorSetLayoutInfo.pNext = NULL;
+	descriptorSetLayoutInfo.flags = 0;
+	descriptorSetLayoutInfo.bindingCount = 2;
+	descriptorSetLayoutInfo.pBindings = descriptorSetLayoutBindings;
+
+	VkDescriptorSetLayout descriptorSetLayout = { 0 };
+	result = vkCreateDescriptorSetLayout(device, &descriptorSetLayoutInfo, NULL, &descriptorSetLayout);
+	if (result != VK_SUCCESS) {
+		puts("Failed to create descriptor set layout");
+		exit(1);
+	}
+	puts("Created descriptor set layout");
+
+	// Create pipeline layout
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo = { 0 };
+	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo.pNext = NULL;
+	pipelineLayoutInfo.flags = 0;
+	pipelineLayoutInfo.setLayoutCount = 1;
+	pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+	pipelineLayoutInfo.pushConstantRangeCount = 0;
+	pipelineLayoutInfo.pPushConstantRanges = NULL;
+
+	VkPipelineLayout pipelineLayout = { 0 };
+	result = vkCreatePipelineLayout(device, &pipelineLayoutInfo, NULL, &pipelineLayout);
+	if (result != VK_SUCCESS) {
+		puts("Failed to create pipeline layout");
+		exit(1);
+	}
+	puts("Created pipeline layout");
+
 	// 
 	// Do work here
 	//
+
+	// Destroy descriptor set layout
+	vkDestroyDescriptorSetLayout(device, descriptorSetLayout, NULL);
+	puts("Destroyed descriptor set layout");
+
+	// Destroy pipeline layout
+	vkDestroyPipelineLayout(device, pipelineLayout, NULL);
+	puts("Destroyed pipeline layout");
 
 	// Unload shader
 	vkDestroyShaderModule(device, shaderModule, NULL);
