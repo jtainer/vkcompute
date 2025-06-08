@@ -392,6 +392,27 @@ int main() {
 	}
 	puts("Created compute pipeline");
 
+	// Create a descriptor pool
+	VkDescriptorPoolSize descriptorPoolSize = { 0 };
+	descriptorPoolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	descriptorPoolSize.descriptorCount = 2;
+
+	VkDescriptorPoolCreateInfo descriptorPoolInfo = { 0 };
+	descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	descriptorPoolInfo.pNext = NULL;
+	descriptorPoolInfo.flags = 0;
+	descriptorPoolInfo.maxSets = 1;
+	descriptorPoolInfo.poolSizeCount = 1;
+	descriptorPoolInfo.pPoolSizes = &descriptorPoolSize;
+
+	VkDescriptorPool descriptorPool = { 0 };
+	vkCreateDescriptorPool(device, &descriptorPoolInfo, NULL, &descriptorPool);
+	if (result != VK_SUCCESS) {
+		puts("Failed to create descriptor pool");
+		exit(1);
+	}
+	puts("Created descriptor pool");
+
 	// 
 	// Do work here
 	//
@@ -410,6 +431,10 @@ int main() {
 
 	vkDestroyPipeline(device, computePipeline, NULL);
 	puts("Destroyed compute pipeline");
+
+	// Destroy descriptor pool
+	vkDestroyDescriptorPool(device, descriptorPool, NULL);
+	puts("Destroyed descriptor pool");
 
 	// Unmap memory
 	vkUnmapMemory(device, inputBufferMemory);
