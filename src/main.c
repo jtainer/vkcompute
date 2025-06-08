@@ -495,9 +495,85 @@ int main() {
 	}
 	puts("Allocated command buffer");
 
-	// 
-	// Do work here
-	//
+	// Create a fence
+	VkFenceCreateInfo fenceInfo = { 0 };
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fenceInfo.pNext = NULL;
+	fenceInfo.flags = 0;
+
+	VkFence fence = VK_NULL_HANDLE;
+	result = vkCreateFence(device, &fenceInfo, NULL, &fence);
+	if (result != VK_SUCCESS) {
+		puts("Failed to create fence");
+		exit(1);
+	}
+	puts("Created fence");
+
+	// Finally time to do some GPU computing
+
+	// Write some values into the input buffer
+	for (uint32_t i = 0; i < numElements; ++i) {
+		inputBufferMappedPtr[i] = (float) i;
+	}
+
+	// Record commands
+	VkCommandBufferBeginInfo commandBufferBeginInfo = { 0 };
+	commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	commandBufferBeginInfo.pNext = NULL;
+	commandBufferBeginInfo.flags = 0;
+	commandBufferBeginInfo.pInheritanceInfo = NULL;
+
+	result = vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+	if (result != VK_SUCCESS) {
+		puts("Failed to begin recording command buffer");
+		exit(1);
+	}
+	puts("Began recording command buffer");
+
+	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeline);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &descriptorSet, 0, NULL);
+	vkCmdDispatch(commandBuffer, 1, 1, 1);
+	result = vkEndCommandBuffer(commandBuffer);
+	if (result != VK_SUCCESS) {
+		puts("Failed to end recording command buffer");
+		exit(1);
+	}
+	puts("Ended recording command buffer");
+
+	// Submit the command buffer on the compute queue
+	VkSubmitInfo submitInfo = { 0 };
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.pNext = NULL;
+	submitInfo.waitSemaphoreCount = 0;
+	submitInfo.pWaitSemaphores = NULL;
+	submitInfo.pWaitDstStageMask = NULL;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+	submitInfo.signalSemaphoreCount = 0;
+	submitInfo.pSignalSemaphores = NULL;
+
+	result = vkQueueSubmit(computeQueue, 1, &submitInfo, fence);
+	if (result != VK_SUCCESS) {
+		puts("Failed to submit command buffer on compute queue");
+		exit(1);
+	}
+	puts("Submitted command buffer on compute queue");
+
+	result = vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
+	if (result != VK_SUCCESS) {
+		puts("Failed to wait for fence");
+		exit(1);
+	}
+	puts("Waited for fence");
+
+	// Print the results
+	for (uint32_t i = 0; i < 16; ++i) {
+		printf("%f * 2 = %f\n", inputBufferMappedPtr[i], outputBufferMappedPtr[i]);
+	}
+
+	// Destroy fence
+	vkDestroyFence(device, fence, NULL);
+	puts("Destroyed fence");
 
 	// Destroy descriptor set layout
 	vkDestroyDescriptorSetLayout(device, descriptorSetLayout, NULL);
