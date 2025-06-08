@@ -365,6 +365,33 @@ int main() {
 	}
 	puts("Created pipeline layout");
 
+	// Create the compute pipeline
+	VkPipelineShaderStageCreateInfo pipelineShaderStageInfo = { 0 };
+	pipelineShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	pipelineShaderStageInfo.pNext = NULL;
+	pipelineShaderStageInfo.flags = 0;
+	pipelineShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+	pipelineShaderStageInfo.module = shaderModule;
+	pipelineShaderStageInfo.pName = "main";
+	pipelineShaderStageInfo.pSpecializationInfo = NULL;
+
+	VkComputePipelineCreateInfo computePipelineInfo = { 0 };
+	computePipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+	computePipelineInfo.pNext = NULL;
+	computePipelineInfo.flags = 0;
+	computePipelineInfo.stage = pipelineShaderStageInfo;
+	computePipelineInfo.layout = pipelineLayout;
+	computePipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+	computePipelineInfo.basePipelineIndex = -1;
+
+	VkPipeline computePipeline = { 0 };
+	result = vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &computePipelineInfo, NULL, &computePipeline);
+	if (result != VK_SUCCESS) {
+		puts("Failed to create compute pipeline");
+		exit(1);
+	}
+	puts("Created compute pipeline");
+
 	// 
 	// Do work here
 	//
@@ -380,6 +407,9 @@ int main() {
 	// Unload shader
 	vkDestroyShaderModule(device, shaderModule, NULL);
 	puts("Destroyed shader module");
+
+	vkDestroyPipeline(device, computePipeline, NULL);
+	puts("Destroyed compute pipeline");
 
 	// Unmap memory
 	vkUnmapMemory(device, inputBufferMemory);
