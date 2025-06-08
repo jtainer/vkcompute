@@ -413,6 +413,22 @@ int main() {
 	}
 	puts("Created descriptor pool");
 
+	// Allocate a descriptor set from the descriptor pool
+	VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = { 0 };
+	descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	descriptorSetAllocateInfo.pNext = NULL;
+	descriptorSetAllocateInfo.descriptorPool = descriptorPool;
+	descriptorSetAllocateInfo.descriptorSetCount = 1;
+	descriptorSetAllocateInfo.pSetLayouts = &descriptorSetLayout;
+
+	VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+	result = vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, &descriptorSet);
+	if (result != VK_SUCCESS) {
+		puts("Failed to allocate descriptor set");
+		exit(1);
+	}
+	puts("Allocated descriptor set");
+
 	// 
 	// Do work here
 	//
