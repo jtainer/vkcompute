@@ -465,6 +465,36 @@ int main() {
 	vkUpdateDescriptorSets(device, 2, writeDescriptorSets, 0, NULL);
 	puts("Wrote to descriptor set");
 
+	// Create a command pool
+	VkCommandPoolCreateInfo commandPoolInfo = { 0 };
+	commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	commandPoolInfo.pNext = NULL;
+	commandPoolInfo.flags = 0;
+	commandPoolInfo.queueFamilyIndex = computeQueueIndex;
+
+	VkCommandPool commandPool = VK_NULL_HANDLE;
+	result = vkCreateCommandPool(device, &commandPoolInfo, NULL, &commandPool);
+	if (result != VK_SUCCESS) {
+		puts("Failed to create command pool");
+		exit(1);
+	}
+	puts("Created command pool");
+
+	VkCommandBufferAllocateInfo commandBufferAllocateInfo = { 0 };
+	commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	commandBufferAllocateInfo.pNext = NULL;
+	commandBufferAllocateInfo.commandPool = commandPool;
+	commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	commandBufferAllocateInfo.commandBufferCount = 1;
+
+	VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+	result = vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, &commandBuffer);
+	if (result != VK_SUCCESS) {
+		puts("Failed to allocate command buffer");
+		exit(1);
+	}
+	puts("Allocated command buffer");
+
 	// 
 	// Do work here
 	//
@@ -487,6 +517,10 @@ int main() {
 	// Destroy descriptor pool
 	vkDestroyDescriptorPool(device, descriptorPool, NULL);
 	puts("Destroyed descriptor pool");
+
+	// Destroy command pool
+	vkDestroyCommandPool(device, commandPool, NULL);
+	puts("Destroyed command pool");
 
 	// Unmap memory
 	vkUnmapMemory(device, inputBufferMemory);
