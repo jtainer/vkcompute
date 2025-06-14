@@ -1,15 +1,17 @@
 UNAME_S := $(shell uname -s)
 
 ifeq ($(UNAME_S), Linux)
+	CFLAGS = -std=c99 -I$(INC_DIR) -Wall
 	LDFLAGS = -lvulkan
 endif
 
 ifeq ($(UNAME_S), Windows_NT)
-	LDFLAGS = -lvulkan-1 -L$(LIB_DIR)
+	CFLAGS = -std=c99 -I$(INC_DIR) -I$(VK_SDK_PATH)/Include -Wall
+	LDFLAGS = -lvulkan-1 -L$(VK_SDK_PATH)/Lib
 endif
 
 CC = gcc
-CFLAGS = -std=c99 -I$(INC_DIR) -Wall
+
 SRC_DIR = src
 INC_DIR = include
 LIB_DIR = 
