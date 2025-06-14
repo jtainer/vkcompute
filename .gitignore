@@ -1,5 +1,6 @@
 build
 shaders/*.spv
 vkcompute
+vkcompute.exe
 .vscode
 
