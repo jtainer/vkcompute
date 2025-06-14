@@ -1,9 +1,18 @@
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S), Linux)
+	LDFLAGS = -lvulkan
+endif
+
+ifeq ($(UNAME_S), Windows_NT)
+	LDFLAGS = -lvulkan-1 -L$(LIB_DIR)
+endif
+
 CC = gcc
 CFLAGS = -std=c99 -I$(INC_DIR) -Wall
-LDFLAGS = -lvulkan
-
 SRC_DIR = src
 INC_DIR = include
+LIB_DIR = 
 BUILD_DIR = build
 SHADER_DIR = shaders
 SRC = $(wildcard $(SRC_DIR)/*.c)
